@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-svc
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-hello
+  template:
+    metadata:
+      labels:
+        app: web-hello
+    spec:
+      containers:
+      - name: nginx
+        image: nginxdemos/hello:latest
+        ports:
+          - containerPort: 80
