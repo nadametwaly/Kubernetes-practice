@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: docker-reg-pod
+spec:
+  imagePullSecrets:
+    - name: regcred
+  containers:
+    - name: private-reg-container
+      image: nginx:latest

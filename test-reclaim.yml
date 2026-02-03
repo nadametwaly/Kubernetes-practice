@@ -1,0 +1,116 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-retain
+  labels:
+    tier: fast
+    type: retain-demo
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: /data/pv-retain
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-delete
+  labels:
+    tier: standard
+    type: delete-demo
+spec:
+  capacity:
+    storage: 3Gi
+  accessModes:
+    - ReadWriteOnce  # Changed from ReadOnlyMany for write capability
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: manual
+  hostPath:
+    path: /tmp/pv-delete
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-retain
+spec:
+  storageClassName: manual
+  accessModes:  
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi  
+  selector:
+    matchLabels:
+      type: retain-demo
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-delete
+spec:
+  storageClassName: manual
+  accessModes:  
+    - ReadWriteOnce  # Changed from ReadOnlyMany for write capability
+  resources:
+    requests:
+      storage: 2Gi
+  selector:
+    matchLabels:
+      type: delete-demo
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pv-test-pod
+  labels:
+    app: pv-demo
+spec:
+  containers:
+    - name: app
+      image: busybox
+      command: ["sh", "-c"]
+      args:
+        - |
+          echo "=== Writing to RETAIN volume ===" | tee /retain/retain-data.txt
+          echo "Timestamp: $(date)" | tee -a /retain/retain-data.txt
+          echo "Policy: Retain - Data should persist after PVC deletion" | tee -a /retain/retain-data.txt
+          echo "Host Path: /data/pv-retain" | tee -a /retain/retain-data.txt
+          echo "Test ID: RETAIN-$(date +%s)" | tee -a /retain/retain-data.txt
+          echo "" | tee -a /retain/retain-data.txt
+          
+          echo "=== Writing to DELETE volume ===" | tee /delete/delete-data.txt
+          echo "Timestamp: $(date)" | tee -a /delete/delete-data.txt
+          echo "Policy: Delete - Data will be removed after PVC deletion" | tee -a /delete/delete-data.txt
+          echo "Host Path: /tmp/pv-delete" | tee -a /delete/delete-data.txt
+          echo "Test ID: DELETE-$(date +%s)" | tee -a /delete/delete-data.txt
+          echo "" | tee -a /delete/delete-data.txt
+          
+          echo "=== Data written successfully ==="
+          echo ""
+          echo "RETAIN volume contents:"
+          cat /retain/retain-data.txt
+          echo ""
+          echo "DELETE volume contents:"
+          cat /delete/delete-data.txt
+          echo ""
+          echo "=== Pod will sleep for 1 hour. Exec into pod or check host paths ==="
+          sleep 3600
+      volumeMounts:
+        - name: retain-vol
+          mountPath: /retain
+        - name: delete-vol
+          mountPath: /delete
+  restartPolicy: Never
+  volumes:
+    - name: retain-vol
+      persistentVolumeClaim:
+        claimName: pvc-retain
+    - name: delete-vol
+      persistentVolumeClaim:
+        claimName: pvc-delete

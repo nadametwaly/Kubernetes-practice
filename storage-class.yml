@@ -1,0 +1,57 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: dynamic-csi-hostpath
+provisioner: hostpath.csi.k8s.io
+volumeBindingMode: Immediate
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dynamic-pvc-1
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: dynamic-csi-hostpath
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dynamic-pvc-2
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: dynamic-csi-hostpath
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dynamic-test-pod
+spec:
+  containers:
+    - name: app
+      image: busybox
+      command: [ "sleep", "3600" ]
+      volumeMounts:
+        - mountPath: "/mnt/dynamic1"
+          name: dynamic-volume-1
+        - mountPath: "/mnt/dynamic2"
+          name: dynamic-volume-2
+  volumes:
+    - name: dynamic-volume-1
+      persistentVolumeClaim:
+        claimName: dynamic-pvc-1
+    - name: dynamic-volume-2
+      persistentVolumeClaim:
+        claimName: dynamic-pvc-2

@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc1
+spec:
+  storageClassName: ""
+  accessModes:  
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi  
+  selector:
+    matchLabels:
+      tier: fast
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc2
+spec:
+  storageClassName: ""
+  accessModes:  
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 2Gi  
+  selector:
+    matchLabels:
+      tier: standard
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc3
+spec:
+  storageClassName: ""
+  accessModes:  
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi  
+  selector:
+    matchLabels:
+      tier: slow
