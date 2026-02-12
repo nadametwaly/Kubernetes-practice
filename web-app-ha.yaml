@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-ha
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-app-ha
+  template:
+    metadata:
+      labels:
+        app: web-app-ha
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - web
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: web-app-ha-container
+        image: nginx:1.25-alpine
+        ports:
+        - containerPort: 80
+ 
