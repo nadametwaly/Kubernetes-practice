@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: node-monitor
+spec:
+  containers:
+  - name: node-monitor
+    image: nginx:1.25-alpine
+    ports:
+    - containerPort: 80
