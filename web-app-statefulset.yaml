@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: web-app-stateful
+spec:
+  serviceName: "web-app"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+      - name: web-app-container
+        image: nginx:1.25-alpine
+        ports:
+        - containerPort: 80 
+  volumeClaimTemplates:
+  - metadata:
+      name: app-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi  
